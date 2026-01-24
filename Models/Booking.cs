@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
 namespace ServiceBookingPlatform.Models
 {
     public class Booking
@@ -16,7 +15,6 @@ namespace ServiceBookingPlatform.Models
         public DateTime ScheduledStart { get; set; }
         public DateTime ScheduledEnd { get; set; }
         public required string Status { get; set; }
-
 
         // Navigation properties
         public User? User { get; set; }  // Use this to access user details

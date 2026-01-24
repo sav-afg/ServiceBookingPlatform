@@ -9,5 +9,7 @@
         // Denormalized user details for simpler identification
         public required string LastName { get; set; }
         public required string Email { get; set; }
+
+        public required string ServiceName { get; set; }
     }
 }

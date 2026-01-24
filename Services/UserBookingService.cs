@@ -31,30 +31,34 @@ namespace ServiceBookingPlatform.Services
 
         public async Task<List<BookingDto>> GetAllBookingsAsync()
             => await Db.Bookings
-                .Include(b => b.User) // Explicitly load User navigation property
-                .Where(b => b.User != null) // Filter out orphaned bookings
+                .Include(b => b.User)
+                .Include(b => b.Service)// Explicitly load User navigation property
+                .Where(b => b.User != null && b.Service != null) // Filter out orphaned bookings
                 .Select(b => new BookingDto
                 {
                     ScheduledStart = b.ScheduledStart,
                     ScheduledEnd = b.ScheduledEnd,
                     Status = b.Status,
                     LastName = b.User!.LastName,
-                    Email = b.User.Email
+                    Email = b.User.Email,
+                    ServiceName = b.Service!.ServiceName!
                 }).ToListAsync();
 
 
         public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
         {
             var bookingDto = await Db.Bookings
-                .Include(b => b.User) // Explicitly load User navigation property
-                .Where(b => b.Id == bookingId && b.User != null)
+                .Include(b => b.User)
+                .Include(b => b.Service) // Explicitly load User navigation property
+                .Where(b => b.Id == bookingId && b.User != null && b.Service != null)
                 .Select(b => new BookingDto
                 {
                     ScheduledStart = b.ScheduledStart,
                     ScheduledEnd = b.ScheduledEnd,
                     Status = b.Status,
                     LastName = b.User!.LastName,
-                    Email = b.User.Email
+                    Email = b.User.Email,
+                    ServiceName = b.Service!.ServiceName
                 })
                 .FirstOrDefaultAsync();
 
@@ -87,7 +91,8 @@ namespace ServiceBookingPlatform.Services
                 ScheduledEnd = existingBooking.ScheduledEnd,
                 Status = existingBooking.Status,
                 LastName = existingBooking.LastName,
-                Email = existingBooking.Email
+                Email = existingBooking.Email,
+                ServiceName = updatedBooking.ServiceName
             };
 
             return bookingDto;
