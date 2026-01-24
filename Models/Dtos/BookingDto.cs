@@ -2,6 +2,7 @@
 {
     public class BookingDto
     {
+        public int Id { get; set; }
         public DateTime ScheduledStart { get; set; }
         public DateTime ScheduledEnd { get; set; }
         public required string Status { get; set; }

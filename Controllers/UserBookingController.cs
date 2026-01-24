@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos;
 using ServiceBookingPlatform.Services;
 
@@ -9,7 +8,6 @@ namespace ServiceBookingPlatform.Controllers
     [ApiController]
     public class UserBookingController(IUserBookingService service) : ControllerBase
     {
-        // GET: api/UserBooking
         [HttpGet]
         public async Task<ActionResult<List<BookingDto>>> GetAllBookings()
         {
@@ -24,31 +22,37 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Booking>> GetBookingById(int id)
+        public async Task<ActionResult<BookingDto>> GetBookingById(int id)
         {
             var booking = await service.GetBookingByIdAsync(id);
-
-            return booking is null ? NotFound("Booking with the given ID was not found") : Ok(booking);
+            return booking is null 
+                ? NotFound($"Booking with ID {id} was not found") 
+                : Ok(booking);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Booking>> AddBooking(Booking booking)
+        public async Task<ActionResult<BookingDto>> AddBooking(CreateBookingDto booking)
         {
-            return Ok(await service.CreateBookingAsync(booking));
+            var createdBooking = await service.CreateBookingAsync(booking);
+            return CreatedAtAction(nameof(GetBookingById), new { id = createdBooking.Id }, createdBooking);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking)
+        {
+            var updatedBooking = await service.UpdateBookingAsync(id, booking);
+            return updatedBooking is null 
+                ? NotFound($"Booking with ID {id} was not found") 
+                : Ok(updatedBooking);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBooking(int id)
         {
             var result = await service.DeleteBookingAsync(id);
-            return result ? Ok("Booking deleted successfully") : NotFound($"Booking with ID {id} was not found");
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, BookingDto booking)
-        {
-            var updatedBooking = await service.UpdateBookingAsync(id, booking);
-            return updatedBooking is null ? NotFound($"Could not find booking with ID {id}") : Ok(updatedBooking);
+            return result 
+                ? Ok($"Booking with ID {id} successfully deleted.") 
+                : NotFound($"Booking with ID {id} was not found");
         }
     }
 }

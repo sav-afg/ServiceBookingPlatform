@@ -8,9 +8,9 @@ namespace ServiceBookingPlatform.Services
 
         Task<BookingDto?> GetBookingByIdAsync(int bookingId);
 
-        Task<Booking> CreateBookingAsync(Booking newBooking);
+        Task<BookingDto> CreateBookingAsync(CreateBookingDto newBooking);
 
-        Task<BookingDto?> UpdateBookingAsync(int bookingId, BookingDto updatedBooking);
+        Task<BookingDto?> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking);
 
         Task<bool> DeleteBookingAsync(int bookingId);
     }
