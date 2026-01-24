@@ -8,17 +8,11 @@ namespace ServiceBookingPlatform.Models
         public int Id { get; set; }
         public required string FirstName { get; set; }
 
-        public UserRole Role { get; set; } = UserRole.Customer;
+        public string Role { get; set; } = "Customer";
         public required string LastName { get; set; }
         public required string Email { get; set; }
         public required string PhoneNumber { get; set; }
 
-        public enum UserRole
-        {
-            Customer,
-            Staff,
-            Admin
-        }
 
     }
 }

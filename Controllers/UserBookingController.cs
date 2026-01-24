@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ServiceBookingPlatform.Models;
+using ServiceBookingPlatform.Models.Dtos;
 using ServiceBookingPlatform.Services;
 
 namespace ServiceBookingPlatform.Controllers
@@ -11,15 +11,23 @@ namespace ServiceBookingPlatform.Controllers
     {
         // GET: api/UserBooking
         [HttpGet]
-        public async Task<ActionResult<List<Booking>>> GetAllBookings()
+        public async Task<ActionResult<List<BookingDto>>> GetAllBookings()
         {
-            return Ok(await service.GetAllBookingsAsync());
+            var bookings = await service.GetAllBookingsAsync();
+
+            if (bookings.Count == 0)
+            {
+                return NotFound("No bookings found.");
+            }
+
+            return Ok(bookings);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Booking>> GetBookingById(int id)
         {
             var booking = await service.GetBookingByIdAsync(id);
+
             return booking is null ? NotFound("Booking with the given ID was not found") : Ok(booking);
         }
 
@@ -33,14 +41,14 @@ namespace ServiceBookingPlatform.Controllers
         public async Task<ActionResult> DeleteBooking(int id)
         {
             var result = await service.DeleteBookingAsync(id);
-            return result ? Ok("Booking deleted successfully") : NotFound("Booking with the given ID was not found");
+            return result ? Ok("Booking deleted successfully") : NotFound($"Booking with ID {id} was not found");
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Booking>> UpdateBooking(int id, Booking booking)
+        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, BookingDto booking)
         {
             var updatedBooking = await service.UpdateBookingAsync(id, booking);
-            return Ok(updatedBooking);
+            return updatedBooking is null ? NotFound($"Could not find booking with ID {id}") : Ok(updatedBooking);
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using ServiceBookingPlatform.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using ServiceBookingPlatform.Models;
 
 namespace ServiceBookingPlatform.Data
 {

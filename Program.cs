@@ -1,9 +1,7 @@
-
-using GitHub.Copilot.SDK;
-using Scalar.AspNetCore;
-using ServiceBookingPlatform.Services;
-using ServiceBookingPlatform.Data;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
+using ServiceBookingPlatform.Data;
+using ServiceBookingPlatform.Services;
 namespace ServiceBookingPlatform
 {
     public class Program
@@ -19,7 +17,7 @@ namespace ServiceBookingPlatform
             builder.Services.AddOpenApi();
             builder.Services.AddScoped<IUserBookingService, UserBookingService>();
 
-            builder.Services.AddDbContext<AppDbContext>(options => 
+            builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
