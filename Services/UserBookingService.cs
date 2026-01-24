@@ -1,45 +1,63 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
+using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
 
 namespace ServiceBookingPlatform.Services
 {
-    public class UserBookingService : IUserBookingService
+    public class UserBookingService(AppDbContext Db) : IUserBookingService
     {
 
-        static List<Booking> bookings =
-        [
-            new Booking { Id = 1, UserId = 101, ServiceId = 201, ScheduledStart = DateTime.Now, ScheduledEnd = DateTime.Now.AddMinutes(30), Status = "Pending" },
-            new Booking { Id = 2, UserId = 102, ServiceId = 202, ScheduledStart = DateTime.Now, ScheduledEnd = DateTime.Now.AddMinutes(20), Status = "Confirmed" },
-            new Booking { Id = 3, UserId = 103, ServiceId = 203, ScheduledStart = DateTime.Now, ScheduledEnd = DateTime.Now.AddMinutes(10), Status = "Cancelled" }
-        ];
-        public Task<Booking> CreateBookingAsync(Booking newBooking)
+        public async Task<Booking> CreateBookingAsync(Booking newBooking)
         {
-            bookings.Add(newBooking);
-            return Task.FromResult(newBooking);
+            Db.Bookings.Add(newBooking);
+            await Db.SaveChangesAsync();
+            return newBooking;
         }
 
-        public Task<bool> DeleteBookingAsync(int bookingId)
+        public async Task<bool> DeleteBookingAsync(int bookingId)
         {
-            return bookings.Remove(bookings.First(b => b.Id == bookingId)) ? Task.FromResult(true) : Task.FromResult(false);
-
+            var booking = await Db.Bookings.FindAsync(bookingId);
+            
+            if (booking == null)
+            {
+                return false;
+            }
+            
+            Db.Bookings.Remove(booking);
+            await Db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<Booking>> GetAllBookingsAsync()
         {
-            return bookings;
+            return await Db.Bookings.ToListAsync();
         }
 
         public async Task<Booking?> GetBookingByIdAsync(int bookingId)
         {
-            var result = bookings.FirstOrDefault(b => b.Id == bookingId);
+            var result = await Db.Bookings.FindAsync(bookingId);
             return await Task.FromResult(result);
         }
 
-        public Task<Booking> UpdateBookingAsync(int bookingId, Booking updatedBooking)
+        public async Task<Booking?> UpdateBookingAsync(int bookingId, Booking updatedBooking)
         {
-            bookings.Remove(bookings.First(b => b.Id == bookingId));
-            bookings.Add(updatedBooking);
-            return Task.FromResult(updatedBooking);
+            var existingBooking = await Db.Bookings.FindAsync(bookingId);
+            
+            if (existingBooking == null)
+            {
+                return null;
+            }
+            
+            // Update properties of the existing entity
+            existingBooking.UserId = updatedBooking.UserId;
+            existingBooking.ServiceId = updatedBooking.ServiceId;
+            existingBooking.ScheduledStart = updatedBooking.ScheduledStart;
+            existingBooking.ScheduledEnd = updatedBooking.ScheduledEnd;
+            existingBooking.Status = updatedBooking.Status;
+            
+            await Db.SaveChangesAsync();
+            return existingBooking;
         }
     }
 }

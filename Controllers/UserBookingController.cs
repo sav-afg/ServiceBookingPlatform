@@ -29,7 +29,7 @@ namespace ServiceBookingPlatform.Controllers
             return Ok(await service.CreateBookingAsync(booking));
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBooking(int id)
         {
             var result = await service.DeleteBookingAsync(id);

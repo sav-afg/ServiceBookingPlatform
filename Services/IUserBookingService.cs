@@ -10,7 +10,7 @@ namespace ServiceBookingPlatform.Services
 
         Task<Booking> CreateBookingAsync(Booking newBooking);
 
-        Task<Booking> UpdateBookingAsync(int bookingId, Booking updatedBooking);
+        Task<Booking?> UpdateBookingAsync(int bookingId, Booking updatedBooking);
 
         Task<bool> DeleteBookingAsync(int bookingId);
     }
