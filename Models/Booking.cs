@@ -4,7 +4,7 @@ namespace ServiceBookingPlatform.Models
     public class Booking
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
         public int UserId { get; set; }
         public int ServiceId { get; set; }
 

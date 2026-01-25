@@ -72,16 +72,16 @@ namespace ServiceBookingPlatform.Services
             return await GetBookingByIdAsync(bookingId);
         }
 
-        public async Task<bool> DeleteBookingAsync(int bookingId)
+        public async Task<bool> DeleteBookingAsync(int serviceId)
         {
-            var booking = await Db.Bookings.FindAsync(bookingId);
+            var service = await Db.Bookings.FindAsync(serviceId);
 
-            if (booking == null)
+            if (service == null)
             {
                 return false;
             }
 
-            Db.Bookings.Remove(booking);
+            Db.Bookings.Remove(service);
             await Db.SaveChangesAsync();
             return true;
         }

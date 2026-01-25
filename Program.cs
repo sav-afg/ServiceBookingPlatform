@@ -18,6 +18,7 @@ namespace ServiceBookingPlatform
             builder.Services.AddScoped<IUserBookingService, UserBookingService>();
             builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
             builder.Services.AddScoped<IUserLogInService, UserLogInService>();
+            builder.Services.AddScoped<IUserServiceService, UserServiceService>();
 
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

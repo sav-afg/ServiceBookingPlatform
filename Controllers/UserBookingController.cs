@@ -37,7 +37,7 @@ namespace ServiceBookingPlatform.Controllers
             return CreatedAtAction(nameof(GetBookingById), new { id = createdBooking.Id }, createdBooking);
         }
 
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking)
         {
             var updatedBooking = await service.UpdateBookingAsync(id, booking);

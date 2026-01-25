@@ -52,7 +52,7 @@ namespace ServiceBookingPlatform.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("ServiceBookingPlatform.Models.Service", b =>
@@ -77,7 +77,7 @@ namespace ServiceBookingPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Services");
+                    b.ToTable("Services", (string)null);
                 });
 
             modelBuilder.Entity("ServiceBookingPlatform.Models.User", b =>
@@ -114,7 +114,7 @@ namespace ServiceBookingPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ServiceBookingPlatform.Models.Booking", b =>
