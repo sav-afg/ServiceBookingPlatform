@@ -1,4 +1,4 @@
-﻿namespace ServiceBookingPlatform.Models.Dtos
+﻿namespace ServiceBookingPlatform.Models.Dtos.Booking
 {
     public class UpdateBookingDto
     {

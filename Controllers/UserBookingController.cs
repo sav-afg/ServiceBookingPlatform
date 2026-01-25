@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceBookingPlatform.Models.Dtos;
+using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Services;
 
 namespace ServiceBookingPlatform.Controllers

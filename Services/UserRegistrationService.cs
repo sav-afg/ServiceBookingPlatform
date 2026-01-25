@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
-using ServiceBookingPlatform.Models.Dtos;
+using ServiceBookingPlatform.Models.Dtos.User;
 using static FieldValidatorAPI.CommonFieldValidatorFunctions;
 using static FieldValidatorAPI.CommonRegularExpressionValidationPatterns;
 

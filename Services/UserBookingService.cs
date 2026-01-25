@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
-using ServiceBookingPlatform.Models.Dtos;
+using ServiceBookingPlatform.Models.Dtos.Booking;
 
 namespace ServiceBookingPlatform.Services
 {

@@ -1,4 +1,4 @@
-﻿namespace ServiceBookingPlatform.Models.Dtos
+﻿namespace ServiceBookingPlatform.Models.Dtos.Service
 {
     public class ServiceDto
     {

@@ -1,5 +1,5 @@
 ﻿using ServiceBookingPlatform.Models;
-using ServiceBookingPlatform.Models.Dtos;
+using ServiceBookingPlatform.Models.Dtos.Booking;
 namespace ServiceBookingPlatform.Services
 {
     public interface IUserBookingService

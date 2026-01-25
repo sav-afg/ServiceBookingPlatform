@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ServiceBookingPlatform.Models.Dtos;
+using ServiceBookingPlatform.Models.Dtos.User;
 using ServiceBookingPlatform.Services;
 
 namespace ServiceBookingPlatform.Controllers

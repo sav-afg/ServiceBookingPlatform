@@ -1,7 +1,7 @@
 ﻿using ServiceBookingPlatform.Models;
-using ServiceBookingPlatform.Models.Dtos;
 
 using FieldValidatorAPI;
+using ServiceBookingPlatform.Models.Dtos.User;
 namespace ServiceBookingPlatform.Services
 {
     public interface IUserRegistrationService
