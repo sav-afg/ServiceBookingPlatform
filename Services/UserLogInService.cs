@@ -15,7 +15,7 @@ namespace ServiceBookingPlatform.Services
         private static readonly PasswordHasher<User> _passwordHasher = new();
 
         // Validate user credentials
-        public async Task<(bool success, string errors)> ValidateUserCredentialsAsync(UserLogInDto userDto)
+        public async Task<(bool success, string errors)> ValidateUserCredentialsAsync(UserLogInRequestDto userDto)
         {
             
             var validationResult = ValidateUserDto(userDto);
@@ -47,7 +47,7 @@ namespace ServiceBookingPlatform.Services
         }
 
         //Validates the format of the email and password
-        public ValidationResult ValidateUserDto(UserLogInDto user)
+        public ValidationResult ValidateUserDto(UserLogInRequestDto user)
         {
             var result = new ValidationResult { IsValid = true };
             var normalizedEmail = user.Email.Trim().ToLowerInvariant();

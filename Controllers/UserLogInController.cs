@@ -9,10 +9,10 @@ namespace ServiceBookingPlatform.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserLogInController(IUserLogInService service) : ControllerBase
+    public class UserLogInController(IUserLogInService service, JwtService jwtService) : ControllerBase
     {
-        [HttpPost]
-        public async Task<ActionResult> LogIn(UserLogInDto user)
+        [HttpPost("validate")]
+        public async Task<ActionResult> ValidateLogIn(UserLogInRequestDto user)
         {
             var (success, message) = await service.ValidateUserCredentialsAsync(user);
             if (success)
@@ -23,6 +23,17 @@ namespace ServiceBookingPlatform.Controllers
             {
                 return Unauthorized(new { message });
             }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<UserLogInResponseDto>> LogIn(UserLogInRequestDto user)
+        {
+            var result = await jwtService.Authenticate(user);
+
+            if (result is null)
+                return Unauthorized();
+
+            return result;
         }
 
     }

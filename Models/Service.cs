@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ServiceBookingPlatform.Models
 {
-    [Index(nameof(ServiceName), nameof(ServiceType), IsUnique = true)]
     public class Service
     {
         [Key]

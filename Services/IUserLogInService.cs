@@ -5,7 +5,7 @@ namespace ServiceBookingPlatform.Services
 {
     public interface IUserLogInService
     {
-        Task<(bool success, string errors)> ValidateUserCredentialsAsync(UserLogInDto userDto);
-        public ValidationResult ValidateUserDto(UserLogInDto user);
+        Task<(bool success, string errors)> ValidateUserCredentialsAsync(UserLogInRequestDto userDto);
+        public ValidationResult ValidateUserDto(UserLogInRequestDto user);
     }
 }
