@@ -2,6 +2,7 @@
 using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos.Booking;
+using ServiceBookingPlatform.Services.Common;
 
 namespace ServiceBookingPlatform.Services
 {
@@ -36,8 +37,33 @@ namespace ServiceBookingPlatform.Services
                 .FirstOrDefaultAsync(b => b.Id == bookingId);
         }
 
-        public async Task<BookingDto> CreateBookingAsync(CreateBookingDto newBooking)
+        public async Task<Result<BookingDto?>> CreateBookingAsync(CreateBookingDto newBooking)
         {
+            if (newBooking.ScheduledEnd <= newBooking.ScheduledStart)
+            {
+                return Result<BookingDto?>.Failure("Scheduled end time must be after scheduled start time.");
+            }
+
+            if(newBooking.Status != "Pending" && newBooking.Status != "Confirmed" && newBooking.Status != "Cancelled" && newBooking.Status != "Completed")
+            {
+                return Result<BookingDto?>.Failure("Invalid booking status. Allowed values are: Pending, Confirmed, Cancelled, Completed.");
+            }
+            
+            //var service = await Db.Services.FindAsync(newBooking.ServiceId);
+
+            //Check to see if the service has been booked for the requested time
+            bool bookingConflict = await Db.Bookings
+                .AnyAsync(b => b.ServiceId == newBooking.ServiceId &&
+                               ((newBooking.ScheduledStart >= b.ScheduledStart && newBooking.ScheduledStart < b.ScheduledEnd) ||
+                                (newBooking.ScheduledEnd > b.ScheduledStart && newBooking.ScheduledEnd <= b.ScheduledEnd) ||
+                                (newBooking.ScheduledStart <= b.ScheduledStart && newBooking.ScheduledEnd >= b.ScheduledEnd)));
+
+            if(bookingConflict)
+            {
+                return Result<BookingDto?>.Failure("The service is already booked for the requested time.");
+            }
+
+
             var booking = new Booking
             {
                 UserId = newBooking.UserId,
@@ -51,7 +77,9 @@ namespace ServiceBookingPlatform.Services
             await Db.SaveChangesAsync();
 
             // Fetch the complete DTO with user/service info
-            return (await GetBookingByIdAsync(booking.Id))!;
+            return Result<BookingDto?>.Success(
+                await GetBookingByIdAsync(booking.Id),
+                "Booking created successfully.");
         }
 
         public async Task<BookingDto?> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking)

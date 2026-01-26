@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos.User;
+using ServiceBookingPlatform.Services.Common;
 using static FieldValidatorAPI.CommonFieldValidatorFunctions;
 using static FieldValidatorAPI.CommonRegularExpressionValidationPatterns;
 
@@ -51,9 +52,9 @@ namespace ServiceBookingPlatform.Services
             }
         }
 
-        public ValidationResult ValidateUserDto(UserDto userDto)
+        public Result ValidateUserDto(UserDto userDto)
         {
-            var result = new ValidationResult { IsValid = true };
+            var result = Result.Success("Starting validation");
 
             // Validate First Name
             if (!RequiredFieldValidDel(userDto.FirstName))

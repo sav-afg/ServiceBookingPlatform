@@ -1,5 +1,6 @@
 ﻿using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos.Booking;
+using ServiceBookingPlatform.Services.Common;
 namespace ServiceBookingPlatform.Services
 {
     public interface IUserBookingService
@@ -8,7 +9,7 @@ namespace ServiceBookingPlatform.Services
 
         Task<BookingDto?> GetBookingByIdAsync(int bookingId);
 
-        Task<BookingDto> CreateBookingAsync(CreateBookingDto newBooking);
+        Task<Result<BookingDto?>> CreateBookingAsync(CreateBookingDto newBooking);
 
         Task<BookingDto?> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking);
 

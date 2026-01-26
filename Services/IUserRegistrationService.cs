@@ -1,6 +1,6 @@
 ﻿using ServiceBookingPlatform.Models;
 
-using FieldValidatorAPI;
+using ServiceBookingPlatform.Services.Common;
 using ServiceBookingPlatform.Models.Dtos.User;
 namespace ServiceBookingPlatform.Services
 {
@@ -9,6 +9,6 @@ namespace ServiceBookingPlatform.Services
         public Task<bool> EmailExistsAsync(string email);
         public Task<(bool Success, string Message)> RegisterUserAsync(UserDto userDto);
 
-        public ValidationResult ValidateUserDto(UserDto userDto);
+        public Result ValidateUserDto(UserDto userDto);
     }
 }

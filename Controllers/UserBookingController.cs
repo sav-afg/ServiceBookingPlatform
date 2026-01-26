@@ -35,8 +35,18 @@ namespace ServiceBookingPlatform.Controllers
         [HttpPost]
         public async Task<ActionResult<BookingDto>> AddBooking(CreateBookingDto booking)
         {
-            var createdBooking = await service.CreateBookingAsync(booking);
-            return CreatedAtAction(nameof(GetBookingById), new { id = createdBooking.Id }, createdBooking);
+            var result = await service.CreateBookingAsync(booking);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message,
+                    errors = result.Errors
+                });
+            }
+
+            return CreatedAtAction(nameof(GetBookingById), new { id = result.Data!.Id }, result.Data);
         }
 
         [HttpPatch("{id}")]
