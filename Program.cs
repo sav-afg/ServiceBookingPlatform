@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -17,11 +18,54 @@ namespace ServiceBookingPlatform
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+            
+            // Configure OpenAPI with JWT Security
+            builder.Services.AddOpenApi(options =>
+            {
+                options.AddDocumentTransformer((document, context, cancellationToken) =>
+                {
+                    // Create JWT Bearer security scheme
+                    var securityScheme = new OpenApiSecurityScheme
+                    {
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        Description = "JWT Authorization header using the Bearer scheme."
+                    };
 
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+                    // Initialize Components and SecuritySchemes if null
+                    document.Components ??= new OpenApiComponents();
+
+                    if (document.Components.SecuritySchemes == null)
+                    {
+                        document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>();
+                    }
+
+                    // Add security scheme to document
+                    document.Components.SecuritySchemes["Bearer"] = securityScheme;
+
+                    // Create security scheme reference for requirement
+                    var schemeReference = new OpenApiSecuritySchemeReference("Bearer", document);
+
+                    // Create and add security requirement to all operations
+                    foreach (var path in document.Paths.Values)
+                    {
+                        foreach (var operation in path.Operations.Values)
+                        {
+                            // Initialize Security collection if null
+                            operation.Security ??= [];
+
+                            var securityRequirement = new OpenApiSecurityRequirement
+                            {
+                                [schemeReference] = []
+                            };
+                            operation.Security.Add(securityRequirement);
+                        }
+                    }
+
+                    return Task.CompletedTask;
+                });
+            });
 
             builder.Services.AddScoped<IUserBookingService, UserBookingService>();
             builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
@@ -60,8 +104,13 @@ namespace ServiceBookingPlatform
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
-                app.MapScalarApiReference(
-                );
+                app.MapScalarApiReference(options =>
+                {
+                    options
+                        .WithTitle("Service Booking Platform API")
+                        .WithTheme(ScalarTheme.Purple)
+                        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+                });
             }
 
             app.UseHttpsRedirection();

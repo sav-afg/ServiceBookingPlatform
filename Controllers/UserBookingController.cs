@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Services;
 
@@ -6,6 +7,7 @@ namespace ServiceBookingPlatform.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserBookingController(IUserBookingService service) : ControllerBase
     {
         [HttpGet]

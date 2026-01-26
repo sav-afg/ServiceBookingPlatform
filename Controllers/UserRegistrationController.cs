@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBookingPlatform.Models.Dtos.User;
 using ServiceBookingPlatform.Services;
@@ -7,6 +8,7 @@ namespace ServiceBookingPlatform.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class UserRegistrationController(IUserRegistrationService service) : ControllerBase
     {
         [HttpPost]
