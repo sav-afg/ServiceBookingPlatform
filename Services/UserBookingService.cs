@@ -39,17 +39,46 @@ namespace ServiceBookingPlatform.Services
 
         public async Task<Result<BookingDto?>> CreateBookingAsync(CreateBookingDto newBooking)
         {
+            // Validate scheduled times
             if (newBooking.ScheduledEnd <= newBooking.ScheduledStart)
             {
                 return Result<BookingDto?>.Failure("Scheduled end time must be after scheduled start time.");
             }
 
-            if(newBooking.Status != "Pending" && newBooking.Status != "Confirmed" && newBooking.Status != "Cancelled" && newBooking.Status != "Completed")
+            // Validate scheduled times are in the future
+            if (newBooking.ScheduledStart < DateTime.UtcNow)
+            {
+                return Result<BookingDto?>.Failure("Scheduled start time must be in the future.");
+            }
+
+            // Validate booking duration (max 8 hours)
+            var duration = newBooking.ScheduledEnd - newBooking.ScheduledStart;
+            if (duration.TotalHours > 8)
+            {
+                return Result<BookingDto?>.Failure("Booking duration cannot exceed 8 hours.");
+            }
+
+            // Validate booking status (can only take 4 values)
+            if (newBooking.Status != "Pending" && newBooking.Status != "Confirmed" && newBooking.Status != "Cancelled" && newBooking.Status != "Completed")
             {
                 return Result<BookingDto?>.Failure("Invalid booking status. Allowed values are: Pending, Confirmed, Cancelled, Completed.");
             }
-            
-            //var service = await Db.Services.FindAsync(newBooking.ServiceId);
+
+            // Validate user exists
+            var userExists = await Db.Users.AnyAsync(u => u.Id == newBooking.UserId);
+            if (!userExists)
+            {
+                return Result<BookingDto?>.Failure("The specified user does not exist.");
+            }
+
+            // Validate service exists
+            var serviceExists = await Db.Services.AnyAsync(s => s.Id == newBooking.ServiceId);
+            if (!serviceExists)
+            {
+                return Result<BookingDto?>.Failure("The specified service does not exist.");
+            }
+
+
 
             //Check to see if the service has been booked for the requested time
             bool bookingConflict = await Db.Bookings
@@ -82,13 +111,39 @@ namespace ServiceBookingPlatform.Services
                 "Booking created successfully.");
         }
 
-        public async Task<BookingDto?> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking)
+        public async Task<Result<BookingDto?>> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking)
         {
             var existingBooking = await Db.Bookings.FindAsync(bookingId);
 
+            // Check if booking exists
             if (existingBooking == null)
             {
-                return null;
+                return Result<BookingDto?>.Failure("Booking not found.");
+            }
+
+            // Validate scheduled times
+            if (updatedBooking.ScheduledEnd <= updatedBooking.ScheduledStart)
+            {
+                return Result<BookingDto?>.Failure("Scheduled end time must be after scheduled start time.");
+            }
+
+            // Validate scheduled times are in the future
+            if (updatedBooking.ScheduledStart < DateTime.UtcNow)
+            {
+                return Result<BookingDto?>.Failure("Scheduled start time must be in the future.");
+            }
+
+            // Validate booking duration (max 8 hours)
+            var duration = updatedBooking.ScheduledEnd - updatedBooking.ScheduledStart;
+            if (duration.TotalHours > 8)
+            {
+                return Result<BookingDto?>.Failure("Booking duration cannot exceed 8 hours.");
+            }
+
+            // Validate booking status (can only take 4 values)
+            if (updatedBooking.Status != "Pending" && updatedBooking.Status != "Confirmed" && updatedBooking.Status != "Cancelled" && updatedBooking.Status != "Completed")
+            {
+                return Result<BookingDto?>.Failure("Invalid booking status. Allowed values are: Pending, Confirmed, Cancelled, Completed.");
             }
 
             existingBooking.ScheduledStart = updatedBooking.ScheduledStart;
@@ -97,19 +152,21 @@ namespace ServiceBookingPlatform.Services
 
             await Db.SaveChangesAsync();
 
-            return await GetBookingByIdAsync(bookingId);
+            return Result<BookingDto?>.Success(
+                await GetBookingByIdAsync(existingBooking.Id),
+                "Booking updated successfully.");
         }
 
-        public async Task<bool> DeleteBookingAsync(int serviceId)
+        public async Task<bool> DeleteBookingAsync(int bookingId)
         {
-            var service = await Db.Bookings.FindAsync(serviceId);
+            var booking = await Db.Bookings.FindAsync(bookingId);
 
-            if (service == null)
+            if (booking == null)
             {
                 return false;
             }
 
-            Db.Bookings.Remove(service);
+            Db.Bookings.Remove(booking);
             await Db.SaveChangesAsync();
             return true;
         }

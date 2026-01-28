@@ -52,10 +52,19 @@ namespace ServiceBookingPlatform.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking)
         {
-            var updatedBooking = await service.UpdateBookingAsync(id, booking);
-            return updatedBooking is null 
-                ? NotFound($"Booking with ID {id} was not found") 
-                : Ok(updatedBooking);
+            var result = await service.UpdateBookingAsync(id, booking);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message,
+                    errors = result.Errors
+                });
+            }
+
+            return Ok(result.Data);
+
         }
 
         [HttpDelete("{id}")]

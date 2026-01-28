@@ -3,6 +3,7 @@ using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Models.Dtos.Service;
+using ServiceBookingPlatform.Services.Common;
 
 namespace ServiceBookingPlatform.Services
 {
@@ -21,8 +22,16 @@ namespace ServiceBookingPlatform.Services
                 });
         }
 
-        public async Task<ServiceDto> CreateServiceAsync(CreateServiceDto newService)
+        public async Task<Result<ServiceDto>> CreateServiceAsync(CreateServiceDto newService)
         {
+
+            // Check if service with the same name already exists
+            if (await Db.Services.AnyAsync(s => s.ServiceName == newService.ServiceName))
+            {
+                return Result<ServiceDto>.Failure("A service with the same name already exists.");
+            }
+
+            // Create new service entity
             var service = new Service
             {
                 ServiceName = newService.ServiceName,
@@ -33,7 +42,14 @@ namespace ServiceBookingPlatform.Services
             Db.Services.Add(service);
             await Db.SaveChangesAsync();
 
-            return (await GetServiceByIdAsync(service.Id))!;
+            var createdService = await GetServiceByIdAsync(service.Id);
+
+            if (createdService == null)
+            {
+                return Result<ServiceDto>.Failure("Failed to retrieve the created service.");
+            }
+
+            return Result<ServiceDto>.Success(createdService, "Service created successfully.");
         }
 
         public async Task<bool> DeleteServiceAsync(int serviceId)
@@ -64,17 +80,30 @@ namespace ServiceBookingPlatform.Services
             return await Db.Services.AnyAsync(s => s.Id == serviceId);
         }
 
-        public async Task<ServiceDto?> UpdateServiceAsync(int serviceId, UpdateServiceDto updatedService)
+        public async Task<Result<ServiceDto?>> UpdateServiceAsync(int serviceId, UpdateServiceDto updatedService)
         {
             var existingService = await Db.Services.FindAsync(serviceId);
 
+            // Check if the service exists
             if (existingService == null)
-                return null;
+            {
+                return Result<ServiceDto?>.Failure("Service not found.");
+            }
 
-            existingService.ServiceDescription = updatedService.ServiceDescription;
+            // Update only the fields that are provided in the updatedService DTO
+            if (!string.IsNullOrEmpty(updatedService.ServiceName))
+                existingService.ServiceName = updatedService.ServiceName;
+
+            if (!string.IsNullOrEmpty(updatedService.ServiceType))
+                existingService.ServiceType = updatedService.ServiceType;
+
+            if (!string.IsNullOrEmpty(updatedService.ServiceDescription))
+                existingService.ServiceDescription = updatedService.ServiceDescription;
+
+
             await Db.SaveChangesAsync();
 
-            return await GetServiceByIdAsync(serviceId);
+            return Result<ServiceDto?>.Success(await GetServiceByIdAsync(serviceId), "Service updated successfully.");
         }
     }
 }

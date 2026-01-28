@@ -1,5 +1,6 @@
 ﻿using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Models.Dtos.Service;
+using ServiceBookingPlatform.Services.Common;
 
 namespace ServiceBookingPlatform.Services
 {
@@ -11,9 +12,9 @@ namespace ServiceBookingPlatform.Services
 
         Task<ServiceDto?> GetServiceByIdAsync(int serviceId);
 
-        Task<ServiceDto> CreateServiceAsync(CreateServiceDto newService);
+        Task<Result<ServiceDto>> CreateServiceAsync(CreateServiceDto newService);
 
-        Task<ServiceDto?> UpdateServiceAsync(int serviceId, UpdateServiceDto updatedService);
+        Task<Result<ServiceDto?>> UpdateServiceAsync(int serviceId, UpdateServiceDto updatedService);
 
         Task<bool> DeleteServiceAsync(int serviceId);
 

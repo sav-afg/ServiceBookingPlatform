@@ -36,17 +36,35 @@ namespace ServiceBookingPlatform.Controllers
         [HttpPost]
         public async Task<ActionResult<ServiceDto>> AddService(CreateServiceDto service)
         {
-            var createdService = await Service.CreateServiceAsync(service);
-            return CreatedAtAction(nameof(GetServiceById), new { id = createdService.Id }, createdService);
+            var result = await Service.CreateServiceAsync(service);
+
+            if (!result.IsSuccess || result.Data is null)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message,
+                    errors = result.Errors
+                });
+            }
+
+            return CreatedAtAction(nameof(GetServiceById), new { id = result.Data.Id }, result.Data);
         }
 
         [HttpPatch("{id}")]
         public async Task<ActionResult<ServiceDto>> UpdateService(int id, UpdateServiceDto service)
         {
-            var updatedService = await Service.UpdateServiceAsync(id, service);
-            return updatedService is null
-                ? NotFound($"Service with ID {id} was not found")
-                : Ok(updatedService);
+            var result = await Service.UpdateServiceAsync(id, service);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message,
+                    errors = result.Errors
+                });
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpDelete("{id}")]
