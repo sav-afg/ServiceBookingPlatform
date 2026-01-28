@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,13 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <StartupObject>ServiceBookingPlatform.Program</StartupObject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="UnitTests\**" />
+    <Content Remove="UnitTests\**" />
+    <EmbeddedResource Remove="UnitTests\**" />
+    <None Remove="UnitTests\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.8.0" />

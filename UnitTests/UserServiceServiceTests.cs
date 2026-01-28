@@ -54,6 +54,7 @@ public class UserServiceServiceTests
             ServiceType = "Repair",
             ServiceDescription = "Plumbing services"
         });
+
         await context.SaveChangesAsync();
 
         var createDto = new CreateServiceDto
