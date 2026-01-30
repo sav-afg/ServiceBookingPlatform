@@ -5,7 +5,7 @@ namespace ServiceBookingPlatform.Models
     public class User
     {
         [Key]
-        public int Id { get; init; }
+        public int Id { get; set; }
         public required string FirstName { get; set; }
         public string Role { get; set; } = "Customer";
         public required string LastName { get; set; }

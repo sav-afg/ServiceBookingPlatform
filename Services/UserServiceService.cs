@@ -13,13 +13,12 @@ namespace ServiceBookingPlatform.Services
         private IQueryable<ServiceDto> GetServiceQuery()
         {
             return Db.Services
-                .Select(b => new ServiceDto
-                {
-                    Id = b.Id,
-                    ServiceName = b.ServiceName,
-                    ServiceType = b.ServiceType,
-                    ServiceDescription = b.ServiceDescription
-                });
+                .Select(b => new ServiceDto(
+                    b.Id,
+                    b.ServiceName,
+                    b.ServiceType,
+                    b.ServiceDescription
+                ));
         }
 
         public async Task<Result<ServiceDto>> CreateServiceAsync(CreateServiceDto newService)

@@ -1,9 +1,9 @@
 ﻿namespace ServiceBookingPlatform.Models.Dtos.Booking
 {
-    public class UpdateBookingDto
+    public record UpdateBookingDto
     {
-        public DateTime ScheduledStart { get; set; }
-        public DateTime ScheduledEnd { get; set; }
-        public required string Status { get; set; }
+        public required DateTime ScheduledStart { get; init; }
+        public required DateTime ScheduledEnd { get; init; }
+        public required string Status { get; init; }
     }
 }

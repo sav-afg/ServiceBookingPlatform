@@ -15,16 +15,15 @@ namespace ServiceBookingPlatform.Services
                 .Include(b => b.User)
                 .Include(b => b.Service)
                 .Where(b => b.User != null && b.Service != null)
-                .Select(b => new BookingDto
-                {
-                    Id = b.Id,
-                    ScheduledStart = b.ScheduledStart,
-                    ScheduledEnd = b.ScheduledEnd,
-                    Status = b.Status,
-                    LastName = b.User!.LastName,
-                    Email = b.User.Email,
-                    ServiceName = b.Service!.ServiceName
-                });
+                .Select(b => new BookingDto(
+                    b.Id,
+                    b.ScheduledStart,
+                    b.ScheduledEnd,
+                    b.Status,
+                    b.User!.LastName,
+                    b.User.Email,
+                    b.Service!.ServiceName
+                ));
         }
 
         private async Task<BookingDto?> GetBookingDtoByIdAsync(int bookingId)
@@ -49,16 +48,15 @@ namespace ServiceBookingPlatform.Services
             }
 
             return await query
-                .Select(b => new BookingDto
-                {
-                    Id = b.Id,
-                    ScheduledStart = b.ScheduledStart,
-                    ScheduledEnd = b.ScheduledEnd,
-                    Status = b.Status,
-                    LastName = b.User!.LastName,
-                    Email = b.User.Email,
-                    ServiceName = b.Service!.ServiceName
-                })
+                .Select(b => new BookingDto(
+                    b.Id,
+                    b.ScheduledStart,
+                    b.ScheduledEnd,
+                    b.Status,
+                    b.User!.LastName,
+                    b.User.Email,
+                    b.Service!.ServiceName
+                ))
                 .ToListAsync();
         }
 

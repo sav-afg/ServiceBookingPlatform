@@ -6,7 +6,7 @@ namespace ServiceBookingPlatform.Models
     public class Service
     {
         [Key]
-        public int Id { get; init; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(100)]

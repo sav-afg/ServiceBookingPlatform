@@ -1,21 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 namespace ServiceBookingPlatform.Models.Dtos.Booking
 {
-    public class CreateBookingDto
+    public record CreateBookingDto
     {
-        //[Required(ErrorMessage = "Booking must be associated with a user.")]
-        //public int UserId { get; set; }
-
         [Required(ErrorMessage = "Booking must be associated with a service.")]
-        public int ServiceId { get; set; }
+        public required int ServiceId { get; init; }
 
         [Required(ErrorMessage = "Booking must have a scheduled start time.")]
-        public DateTime ScheduledStart { get; set; }
+        public required DateTime ScheduledStart { get; init; }
 
         [Required(ErrorMessage = "Booking must have a scheduled end time.")]
-        public DateTime ScheduledEnd { get; set; }
+        public required DateTime ScheduledEnd { get; init; }
 
         [Required(ErrorMessage = "Booking status is required.")]
-        public required string Status { get; set; }
+        public required string Status { get; init; }
     }
 }

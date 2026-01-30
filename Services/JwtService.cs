@@ -46,12 +46,11 @@ namespace ServiceBookingPlatform.Services
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
             var accessToken = tokenHandler.WriteToken(securityToken);
 
-            return new UserLogInResponseDto
-            {
-                AccessToken = accessToken,
-                Email = request.Email,
-                ExpiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
-            };
+            return new UserLogInResponseDto(
+                accessToken,
+                request.Email,
+                (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
+            );
 
         }
     }
