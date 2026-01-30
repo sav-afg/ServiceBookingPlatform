@@ -3,6 +3,7 @@ using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Services.Common;
+using System.Security.Claims;
 
 namespace ServiceBookingPlatform.Services
 {
@@ -26,18 +27,61 @@ namespace ServiceBookingPlatform.Services
                 });
         }
 
-        public async Task<List<BookingDto>> GetAllBookingsAsync()
-        {
-            return await GetBookingQuery().ToListAsync();
-        }
-
-        public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
+        private async Task<BookingDto?> GetBookingDtoByIdAsync(int bookingId)
         {
             return await GetBookingQuery()
                 .FirstOrDefaultAsync(b => b.Id == bookingId);
         }
 
-        public async Task<Result<BookingDto?>> CreateBookingAsync(CreateBookingDto newBooking)
+        public async Task<List<BookingDto>> GetAllBookingsAsync(ClaimsPrincipal user)
+        {
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var query = Db.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Service)
+                .Where(b => b.User != null && b.Service != null);
+
+            if (role != "Admin" && role != "Staff")
+            {
+                query = query.Where(b => b.UserId == userId);
+            }
+
+            return await query
+                .Select(b => new BookingDto
+                {
+                    Id = b.Id,
+                    ScheduledStart = b.ScheduledStart,
+                    ScheduledEnd = b.ScheduledEnd,
+                    Status = b.Status,
+                    LastName = b.User!.LastName,
+                    Email = b.User.Email,
+                    ServiceName = b.Service!.ServiceName
+                })
+                .ToListAsync();
+        }
+
+        public async Task<BookingDto?> GetBookingByIdAsync(int bookingId, ClaimsPrincipal user)
+        {
+            var booking = await Db.Bookings.FindAsync(bookingId);
+
+            if (booking == null)
+                throw new NullReferenceException("Booking not found.");
+
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            if (role == "Customer" && booking.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to access this booking.");
+
+            var bookingDto = await GetBookingQuery()
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+            return bookingDto;
+        }
+
+        public async Task<Result<BookingDto?>> CreateBookingAsync(int userId, CreateBookingDto newBooking)
         {
             // Validate scheduled times
             if (newBooking.ScheduledEnd <= newBooking.ScheduledStart)
@@ -65,7 +109,7 @@ namespace ServiceBookingPlatform.Services
             }
 
             // Validate user exists
-            var userExists = await Db.Users.AnyAsync(u => u.Id == newBooking.UserId);
+            var userExists = await Db.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
             {
                 return Result<BookingDto?>.Failure("The specified user does not exist.");
@@ -95,7 +139,7 @@ namespace ServiceBookingPlatform.Services
 
             var booking = new Booking
             {
-                UserId = newBooking.UserId,
+                UserId = userId,
                 ServiceId = newBooking.ServiceId,
                 ScheduledStart = newBooking.ScheduledStart,
                 ScheduledEnd = newBooking.ScheduledEnd,
@@ -107,7 +151,7 @@ namespace ServiceBookingPlatform.Services
 
             // Fetch the complete DTO with user/service info
             return Result<BookingDto?>.Success(
-                await GetBookingByIdAsync(booking.Id),
+                await GetBookingDtoByIdAsync(booking.Id),
                 "Booking created successfully.");
         }
 
@@ -153,7 +197,7 @@ namespace ServiceBookingPlatform.Services
             await Db.SaveChangesAsync();
 
             return Result<BookingDto?>.Success(
-                await GetBookingByIdAsync(existingBooking.Id),
+                await GetBookingDtoByIdAsync(existingBooking.Id),
                 "Booking updated successfully.");
         }
 

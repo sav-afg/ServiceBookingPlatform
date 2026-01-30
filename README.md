@@ -386,12 +386,48 @@ ServiceBookingPlatform/
 
 ## Security Features
 
-- **Password Hashing:** Uses ASP.NET Core Identity's `PasswordHasher` with salt
-- **Input Validation:** Data annotations and custom validators
+- **Password Hashing:** Uses ASP.NET Core Identity's `PasswordHasher` with salt (no plaintext passwords anywhere)
+- **JWT Claims:** User ID, email, and role embedded in token for authorization checks
+- **Role-Based Authorization:** Different access levels for Customers, Staff, and Admins
+- **Input Validation:** Data annotations and custom validators using FieldValidatorAPI
 - **SQL Injection Protection:** Entity Framework parameterized queries
+- **Authorization Checks:** Services verify user identity before returning/modifying data
 - **CORS:** Configurable cross-origin resource sharing
 - **HTTPS:** Enforced in production
-- **JWT Signing:** HMAC-SHA256 algorithm
+- **JWT Signing:** HMAC-SHA256 algorithm with configurable secret key
+
+### How Authorization Works
+
+When you make a request to a protected endpoint:
+1. The API extracts your JWT token from the Authorization header
+2. It validates the token signature and expiration
+3. It reads the claims (NameId, Email, Role) from the token
+4. Controllers and services use `User.FindFirst(ClaimTypes.Role)` to check permissions
+5. Services like `UserBookingService` filter data based on role (Customers see only their bookings)
+
+## Common Issues & Solutions
+
+### "Unauthorized" when accessing bookings
+Make sure you:
+1. Have logged in and received a JWT token
+2. Include the token in the Authorization header: `Bearer {token}`
+3. Your token hasn't expired (tokens last 30 minutes)
+4. You have the right role (GetAllBookings requires Staff or Admin)
+
+### Tests failing with "Sequence contains no elements"
+This usually means you're trying to test a method that queries the database without seeding test data. Make sure to call helper methods like `SeedTestUser()` before testing.
+
+### JWT claims not found in tests
+If you're testing authorization, create a `ClaimsPrincipal` with the required claims:
+```csharp
+var claims = new List<Claim>
+{
+    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+    new Claim(ClaimTypes.Email, email),
+    new Claim(ClaimTypes.Role, role)
+};
+var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+```
 
 ## Validation Rules
 
@@ -414,25 +450,45 @@ ServiceBookingPlatform/
 
 ## Known Issues
 
-- None currently reported
+None currently. The test suite catches most issues before they make it to production.
 
-## Planned Features
+## Recent Changes
 
-- [ ] Advanced booking scheduling with conflict detection
-- [ ] Email notifications for bookings
-- [ ] Payment integration
-- [ ] Customer reviews and ratings
-- [ ] Service availability calendar
-- [ ] Admin dashboard
+
+- **Added JWT Authentication** - Implemented proper JWT tokens with NameId, Email, and Role claims
+- **Role-Based Authorization** - Customers can only see their own bookings, Staff/Admin see everything
+- **Comprehensive Test Suite** - 59 unit tests covering all major functionality
+- **Fixed Booking Authorization** - Services now use ClaimsPrincipal for proper authorization checks
+- **Improved Error Handling** - Controllers now catch and properly return authorization exceptions
+- **User ID from Token** - CreateBooking now extracts user ID from JWT instead of request body
+- **Booking Conflict Detection** - Can't double-book services anymore
+- **Enhanced Claims Verification** - Tests now handle multiple JWT claim type formats
+
+## What's Next
+
+Thinking about adding:
+- [ ] Email notifications when bookings are confirmed/cancelled
+- [ ] Payment integration (Stripe maybe?)
+- [ ] Customer reviews and ratings for services
+- [ ] Service availability calendar (no more manual conflict checks)
+- [ ] Admin dashboard to see all the stats
 - [ ] Booking history and analytics
+- [ ] Integration tests using WebApplicationFactory (the unit tests are solid, but end-to-end tests would be nice)
+- [ ] Rate limiting to prevent abuse
+- [ ] Refresh tokens (30-minute expiry is a bit short for mobile apps)
 
 ## Contributing
 
+If you want to contribute:
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch (`git checkout -b feature/CoolNewThing`)
+3. Write tests for your changes (aim for the same coverage we have now)
+4. Make sure all 59+ tests pass
+5. Commit your changes (`git commit -m 'Add cool new thing'`)
+6. Push to the branch (`git push origin feature/CoolNewThing`)
+7. Open a Pull Request
+
+Please write tests. Seriously, write tests. The CI will thank you.
 
 ## License
 

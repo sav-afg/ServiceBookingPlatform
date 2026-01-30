@@ -1,5 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ServiceBookingPlatform.Data;
+using ServiceBookingPlatform.Models;
 using ServiceBookingPlatform.Models.Dtos.User;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -23,11 +25,15 @@ namespace ServiceBookingPlatform.Services
             var tokenValidityMins = config.GetValue<int>("JwtConfig:TokenValidityMins");
             var tokenExpiryTimeStamp = DateTime.UtcNow.AddMinutes(tokenValidityMins);
 
+            var user = await Db.Users.FirstAsync(u => u.Email == request.Email);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(
                 [
-                    new Claim(JwtRegisteredClaimNames.Email, request.Email)
+                    new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, request.Email),
+                    new Claim(ClaimTypes.Role, user.Role.ToString())
                 ]),
                 Expires = tokenExpiryTimeStamp,
                 Issuer = issuer,

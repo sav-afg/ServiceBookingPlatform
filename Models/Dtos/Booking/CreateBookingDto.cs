@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
 namespace ServiceBookingPlatform.Models.Dtos.Booking
 {
     public class CreateBookingDto
     {
-        [Required(ErrorMessage = "Booking must be associated with a user.")]
-        public int UserId { get; set; }
+        //[Required(ErrorMessage = "Booking must be associated with a user.")]
+        //public int UserId { get; set; }
 
         [Required(ErrorMessage = "Booking must be associated with a service.")]
         public int ServiceId { get; set; }
