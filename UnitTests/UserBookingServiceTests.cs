@@ -420,8 +420,10 @@ public class UserBookingServiceTests
             Status = "Confirmed"
         };
 
+        var claimsPrincipal = CreateClaimsPrincipal(user.Id, user.Email, "Admin");
+
         // Act
-        var result = await userBookingService.UpdateBookingAsync(booking.Id, updateDto);
+        var result = await userBookingService.UpdateBookingAsync(booking.Id, updateDto, claimsPrincipal);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -435,6 +437,7 @@ public class UserBookingServiceTests
         // Arrange
         var context = GetInMemoryDbContext();
         var userBookingService = new UserBookingService(context);
+        var (user, _) = await SeedTestData(context);
 
         var updateDto = new UpdateBookingDto
         {
@@ -443,8 +446,10 @@ public class UserBookingServiceTests
             Status = "Confirmed"
         };
 
+        var claimsPrincipal = CreateClaimsPrincipal(user.Id, user.Email, "Admin");
+
         // Act
-        var result = await userBookingService.UpdateBookingAsync(999, updateDto);
+        var result = await userBookingService.UpdateBookingAsync(999, updateDto, claimsPrincipal);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -477,8 +482,10 @@ public class UserBookingServiceTests
             Status = "Confirmed"
         };
 
+        var claimsPrincipal = CreateClaimsPrincipal(user.Id, user.Email, "Admin");
+
         // Act
-        var result = await userBookingService.UpdateBookingAsync(booking.Id, updateDto);
+        var result = await userBookingService.UpdateBookingAsync(booking.Id, updateDto, claimsPrincipal);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -504,8 +511,10 @@ public class UserBookingServiceTests
         context.Bookings.Add(booking);
         await context.SaveChangesAsync();
 
+        var claimsPrincipal = CreateClaimsPrincipal(user.Id, user.Email, "Admin");
+
         // Act
-        var result = await userBookingService.DeleteBookingAsync(booking.Id);
+        var result = await userBookingService.DeleteBookingAsync(booking.Id, claimsPrincipal);
 
         // Assert
         Assert.True(result);
@@ -519,9 +528,12 @@ public class UserBookingServiceTests
         // Arrange
         var context = GetInMemoryDbContext();
         var userBookingService = new UserBookingService(context);
+        var (user, _) = await SeedTestData(context);
+
+        var claimsPrincipal = CreateClaimsPrincipal(user.Id, user.Email, "Admin");
 
         // Act
-        var result = await userBookingService.DeleteBookingAsync(999);
+        var result = await userBookingService.DeleteBookingAsync(999, claimsPrincipal);
 
         // Assert
         Assert.False(result);

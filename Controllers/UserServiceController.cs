@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBookingPlatform.Models.Dtos.Service;
 using ServiceBookingPlatform.Services;
@@ -34,6 +33,7 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceDto>> AddService(CreateServiceDto service)
         {
             var result = await Service.CreateServiceAsync(service);
@@ -51,6 +51,7 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ServiceDto>> UpdateService(int id, UpdateServiceDto service)
         {
             var result = await Service.UpdateServiceAsync(id, service);
@@ -68,6 +69,7 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteService(int id)
         {
             var result = await Service.DeleteServiceAsync(id);

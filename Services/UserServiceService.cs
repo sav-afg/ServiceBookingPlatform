@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiceBookingPlatform.Data;
 using ServiceBookingPlatform.Models;
-using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Models.Dtos.Service;
 using ServiceBookingPlatform.Services.Common;
 
@@ -23,7 +22,8 @@ namespace ServiceBookingPlatform.Services
 
         public async Task<Result<ServiceDto>> CreateServiceAsync(CreateServiceDto newService)
         {
-
+            // Authorization is handled at controller level with [Authorize(Roles = "Admin")]
+            
             // Check if service with the same name already exists
             if (await Db.Services.AnyAsync(s => s.ServiceName == newService.ServiceName))
             {
@@ -81,6 +81,8 @@ namespace ServiceBookingPlatform.Services
 
         public async Task<Result<ServiceDto?>> UpdateServiceAsync(int serviceId, UpdateServiceDto updatedService)
         {
+            // Authorization is handled at controller level with [Authorize(Roles = "Admin")]
+            
             var existingService = await Db.Services.FindAsync(serviceId);
 
             // Check if the service exists

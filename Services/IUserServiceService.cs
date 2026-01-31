@@ -1,5 +1,4 @@
-﻿using ServiceBookingPlatform.Models.Dtos.Booking;
-using ServiceBookingPlatform.Models.Dtos.Service;
+﻿using ServiceBookingPlatform.Models.Dtos.Service;
 using ServiceBookingPlatform.Services.Common;
 
 namespace ServiceBookingPlatform.Services

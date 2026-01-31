@@ -229,7 +229,10 @@ namespace ServiceBookingPlatform.Services
              * Only admins can delete any booking
              * Customers cannot delete a booking within 24 hours of the scheduled start time
              */
-            var booking = await Db.Bookings.FindAsync(bookingId) ?? throw new NullReferenceException("Booking not found.");
+            var booking = await Db.Bookings.FindAsync(bookingId);
+            
+            if (booking == null)
+                return false;
 
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
