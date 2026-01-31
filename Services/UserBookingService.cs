@@ -34,14 +34,17 @@ namespace ServiceBookingPlatform.Services
 
         public async Task<List<BookingDto>> GetAllBookingsAsync(ClaimsPrincipal user)
         {
+            // Get user role and ID
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
+            // Base query
             var query = Db.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Service)
                 .Where(b => b.User != null && b.Service != null);
 
+            // If user is not Admin or Staff, filter to only their bookings
             if (role != "Admin" && role != "Staff")
             {
                 query = query.Where(b => b.UserId == userId);
@@ -62,10 +65,11 @@ namespace ServiceBookingPlatform.Services
 
         public async Task<BookingDto?> GetBookingByIdAsync(int bookingId, ClaimsPrincipal user)
         {
-            var booking = await Db.Bookings.FindAsync(bookingId);
+            /*The exceptions thrown here are handled by the controller.
+             Customers can only see their own bookings
+            Admin and Staff can see all bookings*/
 
-            if (booking == null)
-                throw new NullReferenceException("Booking not found.");
+            var booking = await Db.Bookings.FindAsync(bookingId) ?? throw new NullReferenceException("Booking not found.");
 
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -153,14 +157,34 @@ namespace ServiceBookingPlatform.Services
                 "Booking created successfully.");
         }
 
-        public async Task<Result<BookingDto?>> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking)
+        public async Task<Result<BookingDto?>> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking, ClaimsPrincipal user)
         {
+            /*Customers can only update their own bookings
+             * Customers cannot update a booking within 24 hours of the scheduled start time
+             * Admin and Staff can update any booking
+             */
+
             var existingBooking = await Db.Bookings.FindAsync(bookingId);
 
             // Check if booking exists
             if (existingBooking == null)
             {
                 return Result<BookingDto?>.Failure("Booking not found.");
+            }
+
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            // Check permissions
+            if (role == "Customer" && existingBooking.UserId != userId)
+            {
+                return Result<BookingDto?>.Failure("You do not have permission to update this booking.");
+            }
+
+            // Check 24-hour restriction for Customers
+            if (role == "Customer" && (existingBooking.ScheduledStart - DateTime.UtcNow).TotalHours < 24)
+            {
+                return Result<BookingDto?>.Failure("You cannot update a booking within 24 hours of the scheduled start time.");
             }
 
             // Validate scheduled times
@@ -199,14 +223,22 @@ namespace ServiceBookingPlatform.Services
                 "Booking updated successfully.");
         }
 
-        public async Task<bool> DeleteBookingAsync(int bookingId)
+        public async Task<bool> DeleteBookingAsync(int bookingId, ClaimsPrincipal user)
         {
-            var booking = await Db.Bookings.FindAsync(bookingId);
+            /*Customers can only delete their own bookings
+             * Only admins can delete any booking
+             * Customers cannot delete a booking within 24 hours of the scheduled start time
+             */
+            var booking = await Db.Bookings.FindAsync(bookingId) ?? throw new NullReferenceException("Booking not found.");
 
-            if (booking == null)
-            {
-                return false;
-            }
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            if(role != "Admin" && booking.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to delete this booking.");
+
+            if(role != "Admin" && (booking.ScheduledStart - DateTime.UtcNow).TotalHours < 24)
+                throw new InvalidOperationException("You cannot delete a booking within 24 hours of the scheduled start time.");
 
             Db.Bookings.Remove(booking);
             await Db.SaveChangesAsync();

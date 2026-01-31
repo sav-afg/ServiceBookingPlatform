@@ -128,7 +128,7 @@ namespace ServiceBookingPlatform.Services
         private static string HashPassword(string password)
         {
             PasswordHasher<User> passwordHasher = new();
-            var passwordHash = passwordHasher.HashPassword(null, password);
+            var passwordHash = passwordHasher.HashPassword(null!, password);
             return passwordHash;
         }
     }

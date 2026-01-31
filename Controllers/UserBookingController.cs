@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceBookingPlatform.Models.Dtos.Booking;
 using ServiceBookingPlatform.Services;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 namespace ServiceBookingPlatform.Controllers
 {
     [Route("api/[controller]")]
@@ -37,8 +38,8 @@ namespace ServiceBookingPlatform.Controllers
             try
             {
                 var booking = await service.GetBookingByIdAsync(id, User);
-                return booking is null 
-                    ? NotFound($"Booking with ID {id} was not found") 
+                return booking is null
+                    ? NotFound($"Booking with ID {id} was not found")
                     : Ok(booking);
             }
             catch (UnauthorizedAccessException ex)
@@ -72,9 +73,9 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking)
+        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking, ClaimsPrincipal user)
         {
-            var result = await service.UpdateBookingAsync(id, booking);
+            var result = await service.UpdateBookingAsync(id, booking, user);
 
             if (!result.IsSuccess)
             {
@@ -90,12 +91,29 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteBooking(int id)
+        public async Task<ActionResult> DeleteBooking(int id, ClaimsPrincipal user)
         {
-            var result = await service.DeleteBookingAsync(id);
-            return result 
-                ? Ok($"Booking with ID {id} successfully deleted.") 
-                : NotFound($"Booking with ID {id} was not found");
+            try
+            {
+                var result = await service.DeleteBookingAsync(id, user);
+                return result
+                    ? Ok($"Booking with ID {id} successfully deleted.")
+                    : NotFound($"Booking with ID {id} was not found");
+
+            }
+            catch (NullReferenceException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

@@ -50,7 +50,7 @@ namespace ServiceBookingPlatform
                     // Create and add security requirement to all operations
                     foreach (var path in document.Paths.Values)
                     {
-                        foreach (var operation in path.Operations.Values)
+                        foreach (var operation in path.Operations!.Values)
                         {
                             // Initialize Security collection if null
                             operation.Security ??= [];

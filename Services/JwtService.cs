@@ -38,7 +38,7 @@ namespace ServiceBookingPlatform.Services
                 Expires = tokenExpiryTimeStamp,
                 Issuer = issuer,
                 Audience = audience,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key!)),
                         SecurityAlgorithms.HmacSha256Signature),
             };
 

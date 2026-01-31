@@ -12,8 +12,8 @@ namespace ServiceBookingPlatform.Services
 
         Task<Result<BookingDto?>> CreateBookingAsync(int userId, CreateBookingDto newBooking);
 
-        Task<Result<BookingDto?>> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking);
+        Task<Result<BookingDto?>> UpdateBookingAsync(int bookingId, UpdateBookingDto updatedBooking, ClaimsPrincipal user);
 
-        Task<bool> DeleteBookingAsync(int bookingId);
+        Task<bool> DeleteBookingAsync(int bookingId, ClaimsPrincipal user);
     }
 }
