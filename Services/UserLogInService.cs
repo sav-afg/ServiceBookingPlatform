@@ -75,5 +75,31 @@ namespace ServiceBookingPlatform.Services
             return result;
 
         }
+
+        public async Task<(bool success, string message)> LogOutAsync(string refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return (false, "Refresh token is required");
+            }
+
+            var token = await Db.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+            if (token == null)
+            {
+                return (false, "Invalid refresh token");
+            }
+
+            if (token.IsRevoked)
+            {
+                return (false, "Token is already revoked");
+            }
+
+            token.IsRevoked = true;
+            await Db.SaveChangesAsync();
+
+            return (true, "Logged out successfully");
+        }
     }
 }

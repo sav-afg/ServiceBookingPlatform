@@ -219,4 +219,183 @@ public class UserLogInServiceTests
         Assert.False(result.IsValid);
         Assert.Contains("Email address is not in a valid format", result.Errors);
     }
+
+    [Fact]
+    public async Task LogOutAsync_ValidRefreshToken_RevokesTokenAndReturnsSuccess()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+        
+        var user = new User
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@gmail.com",
+            PhoneNumber = "1234567890",
+            PasswordHash = "hashedPassword"
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = "valid-refresh-token-12345",
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        context.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync();
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync(refreshToken.Token);
+
+        // Assert
+        Assert.True(success);
+        Assert.Equal("Logged out successfully", message);
+        
+        // Verify token was revoked in database
+        var revokedToken = await context.RefreshTokens.FindAsync(refreshToken.Id);
+        Assert.True(revokedToken!.IsRevoked);
+    }
+
+    [Fact]
+    public async Task LogOutAsync_NullRefreshToken_ReturnsFailure()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync(null!);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("Refresh token is required", message);
+    }
+
+    [Fact]
+    public async Task LogOutAsync_EmptyRefreshToken_ReturnsFailure()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync("");
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("Refresh token is required", message);
+    }
+
+    [Fact]
+    public async Task LogOutAsync_WhitespaceRefreshToken_ReturnsFailure()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync("   ");
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("Refresh token is required", message);
+    }
+
+    [Fact]
+    public async Task LogOutAsync_InvalidRefreshToken_ReturnsFailure()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync("non-existent-token");
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("Invalid refresh token", message);
+    }
+
+    [Fact]
+    public async Task LogOutAsync_AlreadyRevokedToken_ReturnsFailure()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+        
+        var user = new User
+        {
+            FirstName = "Jane",
+            LastName = "Smith",
+            Email = "jane.smith@gmail.com",
+            PhoneNumber = "0987654321",
+            PasswordHash = "hashedPassword"
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = "already-revoked-token",
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = true // Already revoked
+        };
+        context.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync();
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync(refreshToken.Token);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("Token is already revoked", message);
+    }
+
+    [Fact]
+    public async Task LogOutAsync_ExpiredButNotRevokedToken_RevokesSuccessfully()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var userLogInService = new UserLogInService(context);
+        
+        var user = new User
+        {
+            FirstName = "Bob",
+            LastName = "Johnson",
+            Email = "bob.johnson@gmail.com",
+            PhoneNumber = "5555555555",
+            PasswordHash = "hashedPassword"
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = "expired-token-12345",
+            CreatedAt = DateTime.UtcNow.AddDays(-10),
+            ExpiresAt = DateTime.UtcNow.AddDays(-3), // Expired 3 days ago
+            IsRevoked = false
+        };
+        context.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync();
+
+        // Act
+        var (success, message) = await userLogInService.LogOutAsync(refreshToken.Token);
+
+        // Assert
+        Assert.True(success);
+        Assert.Equal("Logged out successfully", message);
+        
+        // Verify token was revoked
+        var revokedToken = await context.RefreshTokens.FindAsync(refreshToken.Id);
+        Assert.True(revokedToken!.IsRevoked);
+    }
 }

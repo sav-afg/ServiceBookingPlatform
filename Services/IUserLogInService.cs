@@ -7,5 +7,6 @@ namespace ServiceBookingPlatform.Services
     {
         Task<(bool success, string errors)> ValidateUserCredentialsAsync(UserLogInRequestDto userDto);
         public ValidationResult ValidateUserDto(UserLogInRequestDto user);
+        Task<(bool success, string message)> LogOutAsync(string refreshToken);
     }
 }

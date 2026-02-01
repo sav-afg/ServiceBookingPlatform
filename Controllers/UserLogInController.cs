@@ -38,5 +38,17 @@ namespace ServiceBookingPlatform.Controllers
             return result;
         }
 
+        [HttpPost("logout")]
+        public async Task<ActionResult> LogOut([FromBody] RefreshTokenRequestDto request)
+        {
+            var (success, message) = await service.LogOutAsync(request.RefreshToken);
+
+            if (!success)
+            {
+                return BadRequest(new { message });
+            }
+
+            return Ok(new { message });
+        }
     }
 }
