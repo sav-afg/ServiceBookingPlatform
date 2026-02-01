@@ -72,6 +72,7 @@ namespace ServiceBookingPlatform
             builder.Services.AddScoped<IUserLogInService, UserLogInService>();
             builder.Services.AddScoped<IUserServiceService, UserServiceService>();
             builder.Services.AddScoped<JwtService>();
+            builder.Services.AddScoped<RefreshService>();
 
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -122,6 +123,7 @@ namespace ServiceBookingPlatform
             app.MapControllers();
 
             app.Run();
+
         }
     }
 }

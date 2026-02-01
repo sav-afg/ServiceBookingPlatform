@@ -6,7 +6,6 @@ using ServiceBookingPlatform.Models.Dtos.User;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
 namespace ServiceBookingPlatform.Services
 {
     public class JwtService(AppDbContext Db, IConfiguration config, IUserLogInService service)
@@ -27,6 +26,17 @@ namespace ServiceBookingPlatform.Services
 
             var user = await Db.Users.FirstAsync(u => u.Email == request.Email);
 
+            // Clean up old/expired refresh tokens for this user
+            var oldTokens = await Db.RefreshTokens
+                .Where(t => t.UserId == user.Id &&
+                           (t.IsRevoked || t.ExpiresAt < DateTime.UtcNow))
+                .ToListAsync();
+
+            if (oldTokens.Count != 0)
+            {
+                Db.RefreshTokens.RemoveRange(oldTokens);
+            }
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(
@@ -46,10 +56,23 @@ namespace ServiceBookingPlatform.Services
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
             var accessToken = tokenHandler.WriteToken(securityToken);
 
+            var refreshToken = new RefreshToken
+            {
+                UserId = user.Id,
+                Token = TokenService.GenerateRefreshToken(),
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            };
+
+            Db.RefreshTokens.Add(refreshToken);
+            await Db.SaveChangesAsync();
+
             return new UserLogInResponseDto(
                 accessToken,
                 request.Email,
-                (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
+                (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds,
+                refreshToken.Token
             );
 
         }

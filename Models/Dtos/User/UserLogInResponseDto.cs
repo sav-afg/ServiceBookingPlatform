@@ -3,6 +3,7 @@
     public record UserLogInResponseDto(
         string AccessToken,
         string Email,
-        int ExpiresIn
+        int ExpiresIn,
+        string RefreshToken
     );
 }

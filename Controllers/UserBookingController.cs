@@ -73,9 +73,9 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking, ClaimsPrincipal user)
+        public async Task<ActionResult<BookingDto>> UpdateBooking(int id, UpdateBookingDto booking)
         {
-            var result = await service.UpdateBookingAsync(id, booking, user);
+            var result = await service.UpdateBookingAsync(id, booking, User);
 
             if (!result.IsSuccess)
             {
@@ -91,11 +91,11 @@ namespace ServiceBookingPlatform.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteBooking(int id, ClaimsPrincipal user)
+        public async Task<ActionResult> DeleteBooking(int id)
         {
             try
             {
-                var result = await service.DeleteBookingAsync(id, user);
+                var result = await service.DeleteBookingAsync(id, User);
                 return result
                     ? Ok($"Booking with ID {id} successfully deleted.")
                     : NotFound($"Booking with ID {id} was not found");

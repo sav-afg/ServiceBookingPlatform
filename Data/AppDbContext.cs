@@ -9,5 +9,7 @@ namespace ServiceBookingPlatform.Data
         public DbSet<Booking> Bookings => Set<Booking>();
         public DbSet<User> Users => Set<User>();
 
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     }
 }
