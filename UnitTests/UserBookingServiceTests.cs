@@ -60,31 +60,83 @@ public class UserBookingServiceTests
     }
 
     [Fact]
-    public async Task GetAllBookings_Customer_Unauthorized()
+    public async Task GetAllBookings_Customer_OnlySeesOwnBookings()
     {
         // Arrange
         var context = GetInMemoryDbContext();
         var userBookingService = new UserBookingService(context);
-        var userBookingController = new UserBookingController(userBookingService);
 
-        // Create a ClaimsPrincipal with Customer role
-        var claimsPrincipal = CreateClaimsPrincipal(1, "testuser@example.com", "Customer");
+        // Create two customers
+        var customer1Id = 1;
+        var customer2Id = 2;
 
-        // Set up the HttpContext with the customer user
-        userBookingController.ControllerContext = new ControllerContext
+        // Create test users
+        var customer1 = new User
         {
-            HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            Id = customer1Id,
+            FirstName = "Customer1",
+            LastName = "Test",
+            Email = "customer1@test.com",
+            PasswordHash = "hash",
+            PhoneNumber = "1234567890",
+            Role = "Customer"
         };
 
-        
+        var customer2 = new User
+        {
+            Id = customer2Id,
+            FirstName = "Customer2",
+            LastName = "Test",
+            Email = "customer2@test.com",
+            PasswordHash = "hash",
+            PhoneNumber = "0987654321",
+            Role = "Customer"
+        };
+
+        context.Users.AddRange(customer1, customer2);
+
+        // Create a service
+        var service = new Service
+        {
+            Id = 1,
+            ServiceName = "Test Service",
+            ServiceType = "Testing",
+            ServiceDescription = "Test"
+        };
+        context.Services.Add(service);
+        await context.SaveChangesAsync();
+
+        // Create bookings for both customers
+        var booking1 = new Booking
+        {
+            UserId = customer1Id,
+            ServiceId = service.Id,
+            ScheduledStart = DateTime.UtcNow.AddDays(1),
+            ScheduledEnd = DateTime.UtcNow.AddDays(1).AddHours(1),
+            Status = "Pending"
+        };
+
+        var booking2 = new Booking
+        {
+            UserId = customer2Id,
+            ServiceId = service.Id,
+            ScheduledStart = DateTime.UtcNow.AddDays(2),
+            ScheduledEnd = DateTime.UtcNow.AddDays(2).AddHours(1),
+            Status = "Pending"
+        };
+
+        context.Bookings.AddRange(booking1, booking2);
+        await context.SaveChangesAsync();
+
+        // Create ClaimsPrincipal for customer1
+        var claimsPrincipal = CreateClaimsPrincipal(customer1Id, customer1.Email, "Customer");
+
         // Act
-        var methodInfo = typeof(UserBookingController).GetMethod("GetAllBookings");
-        var authorizeAttribute = methodInfo?.GetCustomAttributes(typeof(AuthorizeAttribute), false)
-            .FirstOrDefault() as AuthorizeAttribute;
-        
+        var bookings = await userBookingService.GetAllBookingsAsync(claimsPrincipal);
+
         // Assert
-        Assert.NotNull(authorizeAttribute);
-        Assert.Equal("Admin, Staff", authorizeAttribute.Roles);
+        Assert.Single(bookings); // Customer should only see their own booking
+        Assert.All(bookings, b => Assert.Equal(customer1.Email, b.Email)); // All bookings should belong to customer1
     }
 
     [Fact]

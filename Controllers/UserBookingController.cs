@@ -19,7 +19,7 @@ namespace ServiceBookingPlatform.Controllers
     public class UserBookingController(IUserBookingService service) : ControllerBase
     {
         [HttpGet]
-        [Authorize(Roles = "Admin, Staff")]
+        // Authorization is handled by the service layer - customers see only their bookings, staff/admin see all
         public async Task<ActionResult<List<BookingDto>>> GetAllBookings()
         {
             var bookings = await service.GetAllBookingsAsync(User);
@@ -44,7 +44,7 @@ namespace ServiceBookingPlatform.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (NullReferenceException ex)
             {
@@ -55,8 +55,21 @@ namespace ServiceBookingPlatform.Controllers
         [HttpPost]
         public async Task<ActionResult<BookingDto>> AddBooking(CreateBookingDto booking)
         {
+            // Try to get user ID from JWT claims
+            // The JWT nameid claim gets mapped to ClaimTypes.NameIdentifier after authentication
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) 
+                           ?? User.FindFirst(JwtRegisteredClaimNames.NameId)
+                           ?? User.FindFirst("nameid");
+            
+            if (userIdClaim == null)
+            {
+                return Unauthorized(new { message = "User ID not found in token claims" });
+            }
 
-            var userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.NameId)!.Value);
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return BadRequest(new { message = "Invalid user ID format in token" });
+            }
 
             var result = await service.CreateBookingAsync(userId, booking);
 

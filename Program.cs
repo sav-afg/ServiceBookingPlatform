@@ -74,8 +74,18 @@ namespace ServiceBookingPlatform
             builder.Services.AddScoped<JwtService>();
             builder.Services.AddScoped<RefreshService>();
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            /* Database Configuration - Integration Test Support
+             Conditionally register database provider based on environment
+             When Environment = "Testing", this registration is skipped,
+             allowing integration tests to register InMemory database provider
+             This prevents the "dual database provider" error in WebApplicationFactory tests*/
+
+            if (builder.Environment.EnvironmentName != "Testing")
+            {
+                builder.Services.AddDbContext<AppDbContext>(options =>
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            }
+            // If environment is "Testing", the DbContext is registered by test setup with InMemory provider
 
             builder.Services.AddAuthentication(options =>
             {

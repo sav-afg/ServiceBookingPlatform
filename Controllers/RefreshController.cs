@@ -4,7 +4,7 @@ using ServiceBookingPlatform.Services;
 
 namespace ServiceBookingPlatform.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("auth/refresh")]
     [ApiController]
     public class RefreshController(RefreshService refreshService) : ControllerBase
     {
