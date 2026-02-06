@@ -9,7 +9,7 @@ using System.Security.Claims;
 using System.Text;
 namespace ServiceBookingPlatform.Services
 {
-    public class RefreshService(AppDbContext Db, IConfiguration config)
+    public class RefreshService(AppDbContext Db, IConfiguration config) : IRefreshService
     {
         public async Task<Result<Models.RefreshToken>> GetRefreshToken(UserLogInResponseDto user)
         {

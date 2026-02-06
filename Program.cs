@@ -71,8 +71,8 @@ namespace ServiceBookingPlatform
             builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
             builder.Services.AddScoped<IUserLogInService, UserLogInService>();
             builder.Services.AddScoped<IUserServiceService, UserServiceService>();
-            builder.Services.AddScoped<JwtService>();
-            builder.Services.AddScoped<RefreshService>();
+            builder.Services.AddScoped<IJwtService, JwtService>();
+            builder.Services.AddScoped<IRefreshService, RefreshService>();
 
             /* Database Configuration - Integration Test Support
              Conditionally register database provider based on environment

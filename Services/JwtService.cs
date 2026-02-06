@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Text;
 namespace ServiceBookingPlatform.Services
 {
-    public class JwtService(AppDbContext Db, IConfiguration config, IUserLogInService service)
+    public class JwtService(AppDbContext Db, IConfiguration config, IUserLogInService service) : IJwtService
     {
         public async Task<UserLogInResponseDto?> Authenticate(UserLogInRequestDto request)
         {
