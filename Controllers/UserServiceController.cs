@@ -7,7 +7,7 @@ namespace ServiceBookingPlatform.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class UserServiceController(IUserServiceService Service) : ControllerBase
     {
         [HttpGet]

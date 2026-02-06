@@ -5,8 +5,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using ServiceBookingPlatform.Data;
+using ServiceBookingPlatform.Middleware;
+using ServiceBookingPlatform.Models.Configuration;
 using ServiceBookingPlatform.Services;
 using System.Text;
+using System.Threading.RateLimiting;
 namespace ServiceBookingPlatform
 {
     public class Program
@@ -15,15 +18,64 @@ namespace ServiceBookingPlatform
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+
+            // strongly-typed configuration
+            builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
 
             builder.Services.AddControllers();
-            
+
+            // response compression
+            builder.Services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+            });
+
+            // CORS with proper configuration
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [])
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+            });
+
+            // Rate limiting
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 100,
+                            QueueLimit = 0,
+                            Window = TimeSpan.FromMinutes(1)
+                        }));
+
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            });
+
             // Configure OpenAPI with JWT Security
             builder.Services.AddOpenApi(options =>
             {
                 options.AddDocumentTransformer((document, context, cancellationToken) =>
                 {
+                    
+                    document.Info = new()
+                    {
+                        Title = "Service Booking Platform API",
+                        Version = "v1",
+                        Description = "RESTful API for managing service bookings, authentication, and service management",
+                        Contact = new() { Name = "Support", Email = "support@servicebooking.com" }
+                    };
                     // Create JWT Bearer security scheme
                     var securityScheme = new OpenApiSecurityScheme
                     {
@@ -83,7 +135,28 @@ namespace ServiceBookingPlatform
             if (builder.Environment.EnvironmentName != "Testing")
             {
                 builder.Services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                {
+                    options.UseSqlServer(
+                        builder.Configuration.GetConnectionString("DefaultConnection"),
+                        sqlServerOptions =>
+                        {
+                            // Add connection resilience
+                            sqlServerOptions.EnableRetryOnFailure(
+                                maxRetryCount: 5,
+                                maxRetryDelay: TimeSpan.FromSeconds(30),
+                                errorNumbersToAdd: null);
+
+                            // Command timeout
+                            sqlServerOptions.CommandTimeout(30);
+                        });
+
+                    // Enable sensitive data logging only in development
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        options.EnableSensitiveDataLogging();
+                        options.EnableDetailedErrors();
+                    }
+                });
             }
             // If environment is "Testing", the DbContext is registered by test setup with InMemory provider
 
@@ -105,11 +178,43 @@ namespace ServiceBookingPlatform
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true
                 };
+
+                // Add custom events for logging
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        if (context.Exception is SecurityTokenExpiredException)
+                        {
+                            context.Response.Headers.Append("Token-Expired", "true");
+                        }
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var result = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            message = "You are not authorized to access this resource"
+                        });
+
+                        return context.Response.WriteAsync(result);
+                    }
+                };
             });
 
             builder.Services.AddAuthorization();
 
             var app = builder.Build();
+
+            // Add global exception handling
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+            // Use response compression
+            app.UseResponseCompression();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -125,6 +230,12 @@ namespace ServiceBookingPlatform
             }
 
             app.UseHttpsRedirection();
+
+            // Add CORS before authentication
+            app.UseCors("AllowFrontend");
+
+            // Add rate limiting
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

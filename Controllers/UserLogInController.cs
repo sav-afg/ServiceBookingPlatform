@@ -11,7 +11,7 @@ namespace ServiceBookingPlatform.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
-    public class UserLogInController(IUserLogInService service, JwtService jwtService) : ControllerBase
+    public class UserLogInController(IUserLogInService service, IJwtService jwtService) : ControllerBase
     {
         [HttpPost("validate")]
         public async Task<ActionResult> ValidateLogIn(UserLogInRequestDto user)

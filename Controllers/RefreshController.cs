@@ -6,7 +6,7 @@ namespace ServiceBookingPlatform.Controllers
 {
     [Route("auth/refresh")]
     [ApiController]
-    public class RefreshController(RefreshService refreshService) : ControllerBase
+    public class RefreshController(IRefreshService refreshService) : ControllerBase
     {
         [HttpPost]
         public async Task<ActionResult<UserLogInResponseDto>> Refresh([FromBody] RefreshTokenRequestDto request)
